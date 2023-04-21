@@ -65,6 +65,8 @@ async function main() {
     } else {
       console.error("Failed to get video data.");
     }
+
+    await new Promise((resolve) => setTimeout(resolve, 3000)); // add 3s delay between each video make sure we don't get banned
   }
 }
 async function download(downloader: Downloader, part: string) {}
