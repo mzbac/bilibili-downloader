@@ -8,7 +8,7 @@ import { JSDOM } from "jsdom";
 
 interface VideoData {
   aid: number;
-  pages: { cid: number }[];
+  pages: Page[];
 }
 
 interface EpInfo {
@@ -20,11 +20,16 @@ interface EpList {
   aid: number;
   cid: number;
 }
+interface Page {
+  cid: number;
+  part: string;
+}
 
 interface InitialState {
   videoData?: VideoData;
   epInfo?: EpInfo;
   epList?: EpList[];
+  pages: Page[];
 }
 
 interface DataResult {
@@ -52,6 +57,7 @@ class Downloader {
   public name = "";
   public links: string[] = [];
   public tasks: Task[] = [];
+  public pages: Page[] = [];
 
   getVideoUrl(videoUrl: string) {
     this.url = "";
@@ -81,7 +87,7 @@ class Downloader {
       .then((result) => {
         let data = result.match(/__INITIAL_STATE__=(.*?);\(function\(\)/)![1];
         const state = JSON.parse(data) as InitialState;
-        console.log("INITIAL STATE", data);
+        // console.log("INITIAL STATE", data);
         if (type === "BV" || type === "bv" || type === "av") {
           this.aid = state.videoData!.aid;
           this.pid = parseInt(url.split("p=")[1], 10) || 1;
@@ -93,6 +99,7 @@ class Downloader {
           this.aid = state.epList![0].aid;
           this.cid = state.epList![0].cid;
         }
+        this.pages = state.videoData.pages;
       })
       .catch((error) => console.error("获取视频 aid 出错！"));
   }

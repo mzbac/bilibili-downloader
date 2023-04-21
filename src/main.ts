@@ -23,46 +23,49 @@ async function main() {
   const downloader = new Downloader();
   downloader.getVideoUrl(argv.url);
   await downloader.getAid();
-  const info = await downloader.getInfo();
+  for (const page of downloader.pages) {
+    downloader.cid = page.cid;
+    const info = await downloader.getInfo();
 
-  if (info) {
-    downloader.name = `${info.data.title}-${downloader.pid}`;
-    console.log("Video Name: ", downloader.name);
-  }
-
-  const data = await downloader.getData(false);
-
-  if (data) {
-    const outputDir = path.resolve(process.cwd(), "downloads");
-    if (!fs.existsSync(outputDir)) {
-      fs.mkdirSync(outputDir);
+    if (info) {
+      downloader.name = `${info.data.title}-${downloader.pid}-${page.part}`;
+      console.log("Video Name: ", downloader.name);
     }
 
-    console.log("Starting download...");
-    downloader.links.forEach((link, index) => {
-      const filePath = path.join(
-        outputDir,
-        `${downloader.name}-part${index + 1}.flv`
-      );
-      const status = downloader.downloadByIndex(
-        index,
-        filePath,
-        (progress: any, taskIndex: number) => {
-          console.log(
-            `Part ${taskIndex + 1} - Progress: ${progress.percentage.toFixed(
-              2
-            )}%`
-          );
-        }
-      );
+    const data = await downloader.getData(false);
 
-      if (status === "DUPLICATE") {
-        console.log(`Part ${index + 1} is already being downloaded.`);
+    if (data) {
+      const outputDir = path.resolve(process.cwd(), "downloads");
+      if (!fs.existsSync(outputDir)) {
+        fs.mkdirSync(outputDir);
       }
-    });
-  } else {
-    console.error("Failed to get video data.");
+
+      console.log("Starting download...");
+      downloader.links.forEach((link, index) => {
+        const filePath = path.join(
+          outputDir,
+          `${downloader.name}-part${index + 1}.flv`
+        );
+        const status = downloader.downloadByIndex(
+          index,
+          filePath,
+          (progress: any, taskIndex: number) => {
+            console.log(
+              `Part ${taskIndex + 1} - Progress: ${progress.percentage.toFixed(
+                2
+              )}%`
+            );
+          }
+        );
+
+        if (status === "DUPLICATE") {
+          console.log(`Part ${index + 1} is already being downloaded.`);
+        }
+      });
+    } else {
+      console.error("Failed to get video data.");
+    }
   }
 }
-
+async function download(downloader: Downloader, part: string) {}
 main().catch((error) => console.error(error));
